@@ -11,11 +11,11 @@ module Test
           Generator.new(argument_list[1..-1]).generate
           return
         else
-          load_and_run_tests
+          load_and_run_tests(argument_list)
         end
       end
 
-      def load_and_run_tests
+      def load_and_run_tests(features_to_run)
         run_setup
 
         subdir = false
@@ -30,8 +30,11 @@ module Test
         
         Dir.chdir("../..") if subdir
 
-        puts "Running #{features.size} features"
-        runner = Runner.new(config, widgets, features)
+        run_features = features
+        run_features.select! { |f| features_to_run.include?(f.to_s) } if features_to_run.length > 0
+
+        puts "Running #{run_features.size} feature(s)"
+        runner = Runner.new(config, widgets, run_features)
         if runner.run
           puts "Passed!"
         else
