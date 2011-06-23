@@ -80,8 +80,12 @@ module Test
         @name = name
       end
 
-      def visit
-        @driver.get(self.class.location, :relative => true)
+      def visit(absolute_url = nil)
+        if absolute_url
+          @driver.get(absolute_url, :relative => false)
+        else
+          @driver.get(self.class.location, :relative => true)
+        end
       end
 
       def exists?
