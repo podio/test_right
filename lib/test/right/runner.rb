@@ -14,7 +14,7 @@ module Test
         @pool = Threadz::ThreadPool.new(:initial_size => 2, :maximum_size => 2)
         @result_queue = Queue.new
         @data_template = config[:data] || {}
-        @quit_on_fail = config[:quit_on_fail] || true
+        @quit_on_fail = config[:quit_on_fail].nil? ? true : config[:quit_on_fail]
       end
 
       def run
@@ -76,16 +76,18 @@ module Test
             target.setup
           end
           target.send(method)
-        rescue
+        rescue Exception => ex
           success = false
+          raise ex
         ensure
           # Run any teardown logic if it exists
           begin
             if target and target.respond_to? :teardown
               target.teardown
             end
-          rescue
+          rescue Exception => ex
             success = false
+            raise ex
           ensure
             driver.quit if success || @quit_on_fail
           end
