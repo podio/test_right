@@ -14,6 +14,7 @@ module Test
         @pool = Threadz::ThreadPool.new(:initial_size => 2, :maximum_size => 2)
         @result_queue = Queue.new
         @data_template = config[:data] || {}
+        @quit_on_fail = config[:quit_on_fail] || true
       end
 
       def run
@@ -68,20 +69,25 @@ module Test
 
         data = DataFactory.new(@data_template)
 
+        success = true
         begin
           target = feature.new(driver, data)
           if target.respond_to? :setup
             target.setup
           end
           target.send(method)
+        rescue
+          success = false
         ensure
           # Run any teardown logic if it exists
           begin
             if target and target.respond_to? :teardown
               target.teardown
             end
+          rescue
+            success = false
           ensure
-            driver.quit
+            driver.quit if success || @quit_on_fail
           end
         end
       end
